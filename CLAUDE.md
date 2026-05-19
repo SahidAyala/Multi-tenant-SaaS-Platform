@@ -78,6 +78,32 @@ Rules:
 - Implementations that already extend a base class: `implements AbstractPort`
 - No `@Inject()` decorator needed — NestJS resolves from constructor parameter type
 
+### Null / Empty Checks
+
+Never use raw truthy/falsy for null, undefined, or empty-array checks. Use the helpers from `@atlas/shared-kernel`:
+
+```ts
+import { isNil, isEmpty, isUndefined } from '@atlas/shared-kernel';
+
+// ✅ Correct
+if (isNil(user)) { ... }           // null or undefined
+if (isEmpty(events)) { ... }       // null, undefined, or length === 0
+if (isUndefined(store)) { ... }    // strictly undefined
+
+// ❌ Wrong
+if (!user) { ... }
+if (events.length === 0) { ... }
+if (store !== undefined) { ... }
+```
+
+Exceptions — keep plain boolean checks for actual booleans:
+```ts
+if (!isActive) { ... }      // ✅ boolean property
+if (!result.success) { ... } // ✅ boolean field
+```
+
+`@nestjs/common` does **not** export these helpers — do not import them from there.
+
 ### Adding a New Entity
 1. Create domain entity in `domain/entities/`
 2. Create TypeORM ORM entity in `infrastructure/persistence/`
