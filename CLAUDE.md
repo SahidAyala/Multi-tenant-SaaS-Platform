@@ -46,7 +46,7 @@ entity.entity.ts          # Domain entities
 aggregate.aggregate.ts    # Domain aggregates
 value-object.vo.ts        # Value objects
 event.domain-event.ts     # Domain events
-repository.port.ts        # Repository interfaces (domain layer)
+repository.port.ts        # Repository abstract classes (domain layer, DI token)
 repository.ts             # Repository implementations (infrastructure)
 orm-entity.orm-entity.ts  # TypeORM entities
 mapper.ts                 # Domain ↔ ORM mappers
@@ -56,11 +56,33 @@ query.query.ts            # Queries
 query.handler.ts          # Query handlers
 ```
 
+### Dependency Injection Ports
+
+All ports injected via NestJS DI **must be `abstract class`**, never `interface` + `Symbol`.
+
+```ts
+// ✅ Correct — abstract class is a real JS value; NestJS resolves by type
+export abstract class UserRepositoryPort {
+  abstract findById(id: string): Promise<UserAggregate | null>;
+}
+// Module: { provide: UserRepositoryPort, useClass: UserRepository }
+// Consumer: constructor(private readonly repo: UserRepositoryPort) {}
+
+// ❌ Wrong — Symbol tokens require fragile @Inject() at every site
+export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
+export interface UserRepositoryPort { ... }
+```
+
+Rules:
+- Implementations with no other parent: `extends AbstractPort`
+- Implementations that already extend a base class: `implements AbstractPort`
+- No `@Inject()` decorator needed — NestJS resolves from constructor parameter type
+
 ### Adding a New Entity
 1. Create domain entity in `domain/entities/`
 2. Create TypeORM ORM entity in `infrastructure/persistence/`
 3. Create mapper in `infrastructure/persistence/`
-4. Create repository port (interface) in `domain/repositories/`
+4. Create repository port (`abstract class`) in `domain/repositories/`
 5. Create repository implementation in `infrastructure/persistence/`
 6. Register in module `providers` + `TypeOrmModule.forFeature()`
 7. Add to `AppModule` entity list
