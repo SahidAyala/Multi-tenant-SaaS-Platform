@@ -1,29 +1,25 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConflictException, Result } from '@atlas/shared-kernel';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Result, SystemQueryContext, generateId } from '@atlas/shared-kernel';
 import { TENANT_CREATED, TenantCreatedEvent } from '@atlas/event-contracts';
 import { CreateOrganizationCommand } from './create-organization.command';
-import {
-  ORGANIZATION_REPOSITORY,
-  OrganizationRepositoryPort,
-} from '../../repositories/organization.repository.port';
-import { OrganizationAggregate } from '../../aggregates/organization.aggregate';
-import { EVENT_BUS_PORT, IEventBus } from '../../../../platform-events/ports/event-bus.port';
+import { OrganizationRepositoryPort } from '../../../domain/repositories/organization.repository.port';
+import { OrganizationAggregate } from '../../../domain/aggregates/organization.aggregate';
+import { IEventBus } from '../../../../platform-events/ports/event-bus.port';
 import { OrganizationDto } from '../../dtos/organization.dto';
-import { generateId } from '@atlas/shared-kernel';
 
 @Injectable()
 export class CreateOrganizationHandler {
   private readonly logger = new Logger(CreateOrganizationHandler.name);
 
   constructor(
-    @Inject(ORGANIZATION_REPOSITORY)
     private readonly organizationRepository: OrganizationRepositoryPort,
-    @Inject(EVENT_BUS_PORT)
     private readonly eventBus: IEventBus,
   ) {}
 
   async execute(command: CreateOrganizationCommand): Promise<Result<OrganizationDto>> {
-    const slugExists = await this.organizationRepository.existsBySlug(command.slug);
+    const ctx = SystemQueryContext.forProvisioning(CreateOrganizationHandler.name);
+
+    const slugExists = await this.organizationRepository.existsBySlug(command.slug, ctx);
     if (slugExists) {
       return Result.fail(
         new ConflictException(`Organization with slug '${command.slug}' already exists`),
@@ -38,9 +34,8 @@ export class CreateOrganizationHandler {
       correlationId: command.correlationId,
     });
 
-    const saved = await this.organizationRepository.save(organization);
+    const saved = await this.organizationRepository.provision(organization, ctx);
 
-    // Publish integration events from domain events
     for (const domainEvent of saved.domainEvents) {
       const integrationEvent: TenantCreatedEvent = {
         eventId: domainEvent.eventId,

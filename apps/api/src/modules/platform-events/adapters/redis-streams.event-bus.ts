@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { isNil, isEmpty } from '@atlas/shared-kernel';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { TenantAwareEvent } from '@atlas/event-contracts';
@@ -18,7 +19,7 @@ import { IEventBus, IEventHandler } from '../ports/event-bus.port';
  * with NATS JetStream or Kafka. The IEventBus interface is unchanged.
  */
 @Injectable()
-export class RedisStreamsEventBus implements IEventBus, OnModuleInit, OnModuleDestroy {
+export class RedisStreamsEventBus extends IEventBus implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisStreamsEventBus.name);
   private readonly handlers = new Map<string, IEventHandler[]>();
   private readonly publisher: Redis;
@@ -106,7 +107,7 @@ export class RedisStreamsEventBus implements IEventBus, OnModuleInit, OnModuleDe
 
   private async consumePendingMessages(): Promise<void> {
     for (const [eventType, handlers] of this.handlers.entries()) {
-      if (handlers.length === 0) continue;
+      if (isEmpty(handlers)) continue;
       const streamKey = `${this.streamPrefix}${eventType}`;
 
       try {
@@ -117,7 +118,7 @@ export class RedisStreamsEventBus implements IEventBus, OnModuleInit, OnModuleDe
           'STREAMS', streamKey, '>',
         ) as Array<[string, Array<[string, string[]]>]> | null;
 
-        if (!results) continue;
+        if (isNil(results)) continue;
 
         for (const [, messages] of results) {
           for (const [messageId, fields] of messages) {

@@ -1,6 +1,9 @@
 import { TenantAwareEvent } from '@atlas/event-contracts';
 
-export const EVENT_BUS_PORT = Symbol('EVENT_BUS_PORT');
+export interface IEventHandler<T extends TenantAwareEvent = TenantAwareEvent> {
+  readonly handlerName: string;
+  handle(event: T): Promise<void>;
+}
 
 /**
  * Event bus abstraction. Current implementations:
@@ -10,14 +13,9 @@ export const EVENT_BUS_PORT = Symbol('EVENT_BUS_PORT');
  * Future extraction path: replace with NATS JetStream or Kafka without
  * changing any domain or application code — only the adapter swaps.
  */
-export interface IEventBus {
-  publish(event: TenantAwareEvent): Promise<void>;
-  publishBatch(events: TenantAwareEvent[]): Promise<void>;
-  subscribe(eventType: string, handler: IEventHandler): Promise<void>;
-  unsubscribe(eventType: string, handlerName: string): Promise<void>;
-}
-
-export interface IEventHandler<T extends TenantAwareEvent = TenantAwareEvent> {
-  readonly handlerName: string;
-  handle(event: T): Promise<void>;
+export abstract class IEventBus {
+  abstract publish(event: TenantAwareEvent): Promise<void>;
+  abstract publishBatch(events: TenantAwareEvent[]): Promise<void>;
+  abstract subscribe(eventType: string, handler: IEventHandler): Promise<void>;
+  abstract unsubscribe(eventType: string, handlerName: string): Promise<void>;
 }

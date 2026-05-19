@@ -1,10 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConflictException, Result } from '@atlas/shared-kernel';
 import { USER_REGISTERED, UserRegisteredEvent } from '@atlas/event-contracts';
 import { RegisterUserCommand } from './register-user.command';
-import { USER_REPOSITORY, UserRepositoryPort } from '../../repositories/user.repository.port';
+import { UserRepositoryPort } from '../../../domain/repositories/user.repository.port';
 import { UserAggregate } from '../../aggregates/user.aggregate';
-import { EVENT_BUS_PORT, IEventBus } from '../../../../platform-events/ports/event-bus.port';
+import { IEventBus } from '../../../../platform-events/ports/event-bus.port';
 
 export interface RegisterUserResult {
   userId: string;
@@ -17,16 +17,16 @@ export class RegisterUserHandler {
   private readonly logger = new Logger(RegisterUserHandler.name);
 
   constructor(
-    @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepositoryPort,
-    @Inject(EVENT_BUS_PORT)
     private readonly eventBus: IEventBus,
   ) {}
 
   async execute(command: RegisterUserCommand): Promise<Result<RegisterUserResult>> {
     const exists = await this.userRepository.existsByEmail(command.email);
     if (exists) {
-      return Result.fail(new ConflictException(`User with email '${command.email}' already exists`));
+      return Result.fail(
+        new ConflictException(`User with email '${command.email}' already exists`),
+      );
     }
 
     const user = await UserAggregate.create({

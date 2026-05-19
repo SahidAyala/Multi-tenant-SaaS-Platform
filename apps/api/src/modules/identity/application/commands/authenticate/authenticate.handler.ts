@@ -1,8 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { isNil } from '@atlas/shared-kernel';
 import { JwtService } from '@nestjs/jwt';
 import { Result, UnauthorizedException } from '@atlas/shared-kernel';
 import { AuthenticateCommand } from './authenticate.command';
-import { USER_REPOSITORY, UserRepositoryPort } from '../../repositories/user.repository.port';
+import { UserRepositoryPort } from '../../../domain/repositories/user.repository.port';
 
 export interface TokenPair {
   accessToken: string;
@@ -17,14 +18,13 @@ export class AuthenticateHandler {
   private readonly logger = new Logger(AuthenticateHandler.name);
 
   constructor(
-    @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepositoryPort,
     private readonly jwtService: JwtService,
   ) {}
 
   async execute(command: AuthenticateCommand): Promise<Result<TokenPair>> {
     const user = await this.userRepository.findByEmail(command.email);
-    if (!user) {
+    if (isNil(user)) {
       // Constant-time response to prevent email enumeration
       return Result.fail(new UnauthorizedException('Invalid credentials'));
     }

@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { isEmpty } from '@atlas/shared-kernel';
 import { TenantAwareEvent } from '@atlas/event-contracts';
 import { IEventBus, IEventHandler } from '../ports/event-bus.port';
 
@@ -10,13 +11,13 @@ import { IEventBus, IEventHandler } from '../ports/event-bus.port';
  * NOT suitable for production — domain events are lost on restart.
  */
 @Injectable()
-export class InMemoryEventBus implements IEventBus, OnModuleDestroy {
+export class InMemoryEventBus extends IEventBus implements OnModuleDestroy {
   private readonly logger = new Logger(InMemoryEventBus.name);
   private readonly handlers = new Map<string, IEventHandler[]>();
 
   async publish(event: TenantAwareEvent): Promise<void> {
     const eventHandlers = this.handlers.get(event.eventType) ?? [];
-    if (eventHandlers.length === 0) {
+    if (isEmpty(eventHandlers)) {
       this.logger.debug(`No handlers registered for event type: ${event.eventType}`);
       return;
     }

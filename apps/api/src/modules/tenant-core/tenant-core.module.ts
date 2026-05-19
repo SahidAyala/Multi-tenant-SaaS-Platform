@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrganizationOrmEntity } from './infrastructure/persistence/organization.orm-entity';
 import { OrganizationRepository } from './infrastructure/persistence/organization.repository';
 import { OrganizationMapper } from './infrastructure/persistence/organization.mapper';
-import { ORGANIZATION_REPOSITORY } from './domain/repositories/organization.repository.port';
+import { OrganizationRepositoryPort } from './domain/repositories/organization.repository.port';
 import { CreateOrganizationHandler } from './application/commands/create-organization/create-organization.handler';
 import { TenantCoreController } from './api/tenant-core.controller';
 
@@ -12,9 +12,9 @@ import { TenantCoreController } from './api/tenant-core.controller';
   controllers: [TenantCoreController],
   providers: [
     OrganizationMapper,
-    { provide: ORGANIZATION_REPOSITORY, useClass: OrganizationRepository },
+    { provide: OrganizationRepositoryPort, useClass: OrganizationRepository },
     CreateOrganizationHandler,
   ],
-  exports: [ORGANIZATION_REPOSITORY],
+  exports: [OrganizationRepositoryPort],
 })
 export class TenantCoreModule {}

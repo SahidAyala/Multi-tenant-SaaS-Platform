@@ -1,17 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { isNil } from '@atlas/shared-kernel';
 import { NotFoundException, Result } from '@atlas/shared-kernel';
 import { WORKFLOW_TRIGGERED, WorkflowTriggeredEvent } from '@atlas/event-contracts';
 import { TriggerWorkflowCommand } from './trigger-workflow.command';
-import {
-  WORKFLOW_DEFINITION_REPOSITORY,
-  WorkflowDefinitionRepositoryPort,
-} from '../../../domain/repositories/workflow-definition.repository.port';
-import {
-  WORKFLOW_EXECUTION_REPOSITORY,
-  WorkflowExecutionRepositoryPort,
-} from '../../../domain/repositories/workflow-execution.repository.port';
+import { WorkflowDefinitionRepositoryPort } from '../../../domain/repositories/workflow-definition.repository.port';
+import { WorkflowExecutionRepositoryPort } from '../../../domain/repositories/workflow-execution.repository.port';
 import { WorkflowExecutionEntity } from '../../../domain/entities/workflow-execution.entity';
-import { EVENT_BUS_PORT, IEventBus } from '../../../../platform-events/ports/event-bus.port';
+import { IEventBus } from '../../../../platform-events/ports/event-bus.port';
 
 export interface TriggerWorkflowResult {
   executionId: string;
@@ -24,21 +19,15 @@ export class TriggerWorkflowHandler {
   private readonly logger = new Logger(TriggerWorkflowHandler.name);
 
   constructor(
-    @Inject(WORKFLOW_DEFINITION_REPOSITORY)
     private readonly definitionRepository: WorkflowDefinitionRepositoryPort,
-    @Inject(WORKFLOW_EXECUTION_REPOSITORY)
     private readonly executionRepository: WorkflowExecutionRepositoryPort,
-    @Inject(EVENT_BUS_PORT)
     private readonly eventBus: IEventBus,
   ) {}
 
   async execute(command: TriggerWorkflowCommand): Promise<Result<TriggerWorkflowResult>> {
-    const definition = await this.definitionRepository.findById(
-      command.definitionId,
-      command.tenantId,
-    );
+    const definition = await this.definitionRepository.findById(command.definitionId);
 
-    if (!definition) {
+    if (isNil(definition)) {
       return Result.fail(new NotFoundException('WorkflowDefinition', command.definitionId));
     }
 

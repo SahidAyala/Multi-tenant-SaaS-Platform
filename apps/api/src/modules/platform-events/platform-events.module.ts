@@ -1,6 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EVENT_BUS_PORT } from './ports/event-bus.port';
+import { IEventBus } from './ports/event-bus.port';
 import { InMemoryEventBus } from './adapters/in-memory.event-bus';
 import { RedisStreamsEventBus } from './adapters/redis-streams.event-bus';
 
@@ -12,7 +12,7 @@ export class PlatformEventsModule {
       imports: [ConfigModule],
       providers: [
         {
-          provide: EVENT_BUS_PORT,
+          provide: IEventBus,
           useFactory: (configService: ConfigService) => {
             const adapter = configService.get<string>('eventBus.adapter', 'memory');
             if (adapter === 'redis-streams') {
@@ -23,7 +23,7 @@ export class PlatformEventsModule {
           inject: [ConfigService],
         },
       ],
-      exports: [EVENT_BUS_PORT],
+      exports: [IEventBus],
       global: true,
     };
   }

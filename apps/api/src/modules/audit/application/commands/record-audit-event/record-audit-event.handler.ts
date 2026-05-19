@@ -1,22 +1,17 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Result } from '@atlas/shared-kernel';
 import { AUDIT_EVENT_RECORDED, AuditEventRecordedEvent } from '@atlas/event-contracts';
 import { RecordAuditEventCommand } from './record-audit-event.command';
-import {
-  AUDIT_EVENT_REPOSITORY,
-  AuditEventRepositoryPort,
-} from '../../../domain/repositories/audit-event.repository.port';
+import { AuditEventRepositoryPort } from '../../../domain/repositories/audit-event.repository.port';
 import { AuditEventEntity } from '../../../domain/entities/audit-event.entity';
-import { EVENT_BUS_PORT, IEventBus } from '../../../../platform-events/ports/event-bus.port';
+import { IEventBus } from '../../../../platform-events/ports/event-bus.port';
 
 @Injectable()
 export class RecordAuditEventHandler {
   private readonly logger = new Logger(RecordAuditEventHandler.name);
 
   constructor(
-    @Inject(AUDIT_EVENT_REPOSITORY)
     private readonly auditRepository: AuditEventRepositoryPort,
-    @Inject(EVENT_BUS_PORT)
     private readonly eventBus: IEventBus,
   ) {}
 

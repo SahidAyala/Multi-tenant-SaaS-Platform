@@ -1,10 +1,7 @@
 import { PaginatedResult, PaginationOptions } from '@atlas/shared-kernel';
 import { AuditEventEntity } from '../entities/audit-event.entity';
 
-export const AUDIT_EVENT_REPOSITORY = Symbol('AUDIT_EVENT_REPOSITORY');
-
 export interface AuditEventFilter {
-  tenantId: string;
   actorId?: string;
   action?: string;
   resourceType?: string;
@@ -14,9 +11,9 @@ export interface AuditEventFilter {
   toDate?: Date;
 }
 
-export interface AuditEventRepositoryPort {
-  append(event: AuditEventEntity): Promise<AuditEventEntity>;
-  appendBatch(events: AuditEventEntity[]): Promise<void>;
-  findById(id: string, tenantId: string): Promise<AuditEventEntity | null>;
-  query(filter: AuditEventFilter, options?: PaginationOptions): Promise<PaginatedResult<AuditEventEntity>>;
+export abstract class AuditEventRepositoryPort {
+  abstract append(event: AuditEventEntity): Promise<AuditEventEntity>;
+  abstract appendBatch(events: AuditEventEntity[]): Promise<void>;
+  abstract findById(id: string): Promise<AuditEventEntity | null>;
+  abstract query(filter: AuditEventFilter, options?: PaginationOptions): Promise<PaginatedResult<AuditEventEntity>>;
 }

@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserOrmEntity } from './infrastructure/persistence/user.orm-entity';
 import { UserRepository } from './infrastructure/persistence/user.repository';
-import { USER_REPOSITORY } from './domain/repositories/user.repository.port';
+import { UserRepositoryPort } from './domain/repositories/user.repository.port';
 import { JwtStrategy } from './infrastructure/jwt/jwt.strategy';
 import { RegisterUserHandler } from './application/commands/register-user/register-user.handler';
 import { AuthenticateHandler } from './application/commands/authenticate/authenticate.handler';
@@ -26,11 +26,11 @@ import { IdentityController } from './api/identity.controller';
   ],
   controllers: [IdentityController],
   providers: [
-    { provide: USER_REPOSITORY, useClass: UserRepository },
+    { provide: UserRepositoryPort, useClass: UserRepository },
     JwtStrategy,
     RegisterUserHandler,
     AuthenticateHandler,
   ],
-  exports: [USER_REPOSITORY, JwtModule],
+  exports: [UserRepositoryPort, JwtModule],
 })
 export class IdentityModule {}

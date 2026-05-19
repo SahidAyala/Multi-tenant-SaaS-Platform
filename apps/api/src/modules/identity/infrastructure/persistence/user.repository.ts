@@ -3,10 +3,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserAggregate } from '../../domain/aggregates/user.aggregate';
 import { UserRepositoryPort } from '../../domain/repositories/user.repository.port';
+
 import { UserOrmEntity } from './user.orm-entity';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
 
+/**
+ * Intentionally does NOT extend TenantScopedRepository.
+ *
+ * Users are a global (cross-tenant) entity. A user authenticates with email +
+ * password without knowing their tenantId upfront — the JWT they receive then
+ * carries the tenantId for subsequent requests. Tenant membership is enforced
+ * at the application layer (roles, RBAC guards), not here.
+ *
+ * If you need to add a method that reads across multiple tenants for a given
+ * user, that is correct here. If you're tempted to scope findById() by tenant,
+ * you likely want the membership layer instead.
+ */
 @Injectable()
 export class UserRepository implements UserRepositoryPort {
   constructor(
