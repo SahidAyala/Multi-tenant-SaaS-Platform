@@ -1,0 +1,89 @@
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { NotFoundException, Result } from '@atlas/shared-kernel';
+import { WORKFLOW_TRIGGERED, WorkflowTriggeredEvent } from '@atlas/event-contracts';
+import { TriggerWorkflowCommand } from './trigger-workflow.command';
+import {
+  WORKFLOW_DEFINITION_REPOSITORY,
+  WorkflowDefinitionRepositoryPort,
+} from '../../../domain/repositories/workflow-definition.repository.port';
+import {
+  WORKFLOW_EXECUTION_REPOSITORY,
+  WorkflowExecutionRepositoryPort,
+} from '../../../domain/repositories/workflow-execution.repository.port';
+import { WorkflowExecutionEntity } from '../../../domain/entities/workflow-execution.entity';
+import { EVENT_BUS_PORT, IEventBus } from '../../../../platform-events/ports/event-bus.port';
+
+export interface TriggerWorkflowResult {
+  executionId: string;
+  definitionId: string;
+  status: string;
+}
+
+@Injectable()
+export class TriggerWorkflowHandler {
+  private readonly logger = new Logger(TriggerWorkflowHandler.name);
+
+  constructor(
+    @Inject(WORKFLOW_DEFINITION_REPOSITORY)
+    private readonly definitionRepository: WorkflowDefinitionRepositoryPort,
+    @Inject(WORKFLOW_EXECUTION_REPOSITORY)
+    private readonly executionRepository: WorkflowExecutionRepositoryPort,
+    @Inject(EVENT_BUS_PORT)
+    private readonly eventBus: IEventBus,
+  ) {}
+
+  async execute(command: TriggerWorkflowCommand): Promise<Result<TriggerWorkflowResult>> {
+    const definition = await this.definitionRepository.findById(
+      command.definitionId,
+      command.tenantId,
+    );
+
+    if (!definition) {
+      return Result.fail(new NotFoundException('WorkflowDefinition', command.definitionId));
+    }
+
+    if (!definition.isActive) {
+      return Result.fail(
+        new Error(`Workflow definition '${definition.definitionId}' is not active`),
+      );
+    }
+
+    const execution = WorkflowExecutionEntity.create({
+      definitionId: definition.definitionId,
+      tenantId: command.tenantId,
+      correlationId: command.correlationId,
+      triggeredBy: command.actorId ?? 'system',
+      triggerType: command.triggerType,
+      input: command.input,
+    });
+
+    const saved = await this.executionRepository.save(execution);
+
+    const event: WorkflowTriggeredEvent = {
+      eventId: saved.executionId,
+      eventType: WORKFLOW_TRIGGERED,
+      tenantId: saved.tenantId,
+      correlationId: saved.correlationId,
+      actorId: command.actorId,
+      occurredAt: new Date().toISOString(),
+      version: 1,
+      payload: {
+        executionId: saved.executionId,
+        definitionId: saved.definitionId,
+        definitionName: definition.name,
+        triggeredBy: saved.triggeredBy,
+        triggerType: saved.triggerType,
+        input: command.input,
+      },
+    };
+
+    await this.eventBus.publish(event);
+    this.logger.log(`Workflow triggered: ${saved.executionId} (def: ${definition.definitionId})`);
+
+    return Result.ok({
+      executionId: saved.executionId,
+      definitionId: saved.definitionId,
+      status: saved.status,
+    });
+  }
+}
