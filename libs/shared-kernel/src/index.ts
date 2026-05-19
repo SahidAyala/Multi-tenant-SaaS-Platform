@@ -46,3 +46,16 @@ export { ValidationException } from './exceptions/validation.exception';
 
 // Utils
 export { generateId, isValidUuid } from './utils/id.util';
+export { isNil, isUndefined, isEmpty } from './utils/type-guards.util';
+
+// Infrastructure base classes
+export {
+  TenantScopedRepository,
+  TenantRootRepository,
+} from './infrastructure/tenant-aware.repository';
+export {
+  SystemQueryContext,
+  SYSTEM_CONTEXT_TYPE,
+} from './infrastructure/system-query-context';
+export type { SystemContextType } from './infrastructure/system-query-context';
+export type { ITenantContextPort } from './infrastructure/tenant-context.port';
