@@ -1,4 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { isNil } from '@atlas/shared-kernel';
 
 /**
  * Extracts the tenant ID from the request object.
@@ -9,7 +10,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 export const TenantId = createParamDecorator((_data: unknown, ctx: ExecutionContext): string => {
   const request = ctx.switchToHttp().getRequest();
   const tenantId = request.headers?.['x-tenant-id'] ?? request.user?.tenantId;
-  if (!tenantId) {
+  if (isNil(tenantId)) {
     throw new Error('TenantId not found in request context');
   }
   return tenantId as string;

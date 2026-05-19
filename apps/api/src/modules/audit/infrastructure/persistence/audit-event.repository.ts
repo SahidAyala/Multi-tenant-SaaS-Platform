@@ -1,38 +1,56 @@
 import { Injectable } from '@nestjs/common';
+import { isEmpty } from '@atlas/shared-kernel';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { TenantScopedRepository, buildPaginationMeta } from '@atlas/shared-kernel';
+import { TenantContextService } from '../../../../common/tenant-context/tenant-context.service';
 import {
   AuditEventRepositoryPort,
   AuditEventFilter,
 } from '../../domain/repositories/audit-event.repository.port';
+
 import { AuditEventEntity } from '../../domain/entities/audit-event.entity';
 import { AuditEventOrmEntity } from './audit-event.orm-entity';
-import {
-  PaginatedResult,
-  PaginationOptions,
-  buildPaginationMeta,
-} from '@atlas/shared-kernel';
+import { PaginatedResult, PaginationOptions } from '@atlas/shared-kernel';
 
 @Injectable()
-export class AuditEventRepository implements AuditEventRepositoryPort {
+export class AuditEventRepository
+  extends TenantScopedRepository<AuditEventOrmEntity>
+  implements AuditEventRepositoryPort
+{
   constructor(
     @InjectRepository(AuditEventOrmEntity)
-    private readonly repo: Repository<AuditEventOrmEntity>,
-  ) {}
+    repo: Repository<AuditEventOrmEntity>,
+    tenantContext: TenantContextService,
+  ) {
+    super(repo, tenantContext);
+  }
 
   async append(event: AuditEventEntity): Promise<AuditEventEntity> {
-    const orm = this.toOrm(event);
-    const saved = await this.repo.save(orm);
-    return this.toDomain(saved);
+    // Double-check: the entity's own tenantId must match the ALS context.
+    // Catches bugs where an entity was constructed with the wrong tenantId.
+    this.guardTenantOwnership(event.tenantId);
+    await this.repo.insert(this.toOrm(event));
+    return event;
   }
 
   async appendBatch(events: AuditEventEntity[]): Promise<void> {
-    const ormEntities = events.map((e) => this.toOrm(e));
-    await this.repo.insert(ormEntities);
+    if (isEmpty(events)) return;
+    const tenantId = this.requireTenantId();
+    for (const e of events) {
+      if (e.tenantId !== tenantId) {
+        throw new Error(
+          `AuditEventRepository.appendBatch: mixed tenantIds — expected ${tenantId}, got ${e.tenantId}`,
+        );
+      }
+    }
+    await this.repo.insert(events.map((e) => this.toOrm(e)));
   }
 
-  async findById(id: string, tenantId: string): Promise<AuditEventEntity | null> {
-    const orm = await this.repo.findOne({ where: { id, tenantId } });
+  async findById(id: string): Promise<AuditEventEntity | null> {
+    const orm = await this.repo.findOne({
+      where: this.scopedWhere({ id } as Partial<AuditEventOrmEntity>),
+    });
     return orm ? this.toDomain(orm) : null;
   }
 
@@ -44,28 +62,31 @@ export class AuditEventRepository implements AuditEventRepositoryPort {
     const limit = Math.min(options.limit ?? 50, 200);
     const skip = (page - 1) * limit;
 
-    const where: FindOptionsWhere<AuditEventOrmEntity> = { tenantId: filter.tenantId };
-    if (filter.actorId) where.actorId = filter.actorId;
-    if (filter.action) where.action = filter.action;
-    if (filter.resourceType) where.resourceType = filter.resourceType;
-    if (filter.resourceId) where.resourceId = filter.resourceId;
-    if (filter.outcome) where.outcome = filter.outcome;
+    const qb = this.scopedQb('ae').orderBy('ae.occurredAt', 'DESC').skip(skip).take(limit);
+
+    if (filter.actorId) qb.andWhere('ae.actorId = :actorId', { actorId: filter.actorId });
+    if (filter.action) qb.andWhere('ae.action = :action', { action: filter.action });
+    if (filter.resourceType)
+      qb.andWhere('ae.resourceType = :resourceType', { resourceType: filter.resourceType });
+    if (filter.resourceId)
+      qb.andWhere('ae.resourceId = :resourceId', { resourceId: filter.resourceId });
+    if (filter.outcome) qb.andWhere('ae.outcome = :outcome', { outcome: filter.outcome });
     if (filter.fromDate && filter.toDate) {
-      where.occurredAt = Between(filter.fromDate, filter.toDate);
+      qb.andWhere('ae.occurredAt BETWEEN :from AND :to', {
+        from: filter.fromDate,
+        to: filter.toDate,
+      });
     }
 
-    const [data, total] = await this.repo.findAndCount({
-      where,
-      order: { occurredAt: 'DESC' },
-      take: limit,
-      skip,
-    });
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data: data.map((e) => this.toDomain(e)),
       meta: buildPaginationMeta(page, limit, total),
     };
   }
+
+  // ── Mapping ─────────────────────────────────────────────────────────────────
 
   private toDomain(orm: AuditEventOrmEntity): AuditEventEntity {
     return AuditEventEntity.reconstitute({

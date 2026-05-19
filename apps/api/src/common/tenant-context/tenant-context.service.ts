@@ -1,5 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
+import { isNil, isUndefined } from '@atlas/shared-kernel';
 import { AsyncLocalStorage } from 'async_hooks';
+import { ITenantContextPort } from '@atlas/shared-kernel';
 import { TenantContext } from './tenant-context.interface';
 
 /**
@@ -9,7 +11,7 @@ import { TenantContext } from './tenant-context.interface';
  * Scope.DEFAULT is intentional — the store lives in AsyncLocalStorage, not in DI scope.
  */
 @Injectable({ scope: Scope.DEFAULT })
-export class TenantContextService {
+export class TenantContextService implements ITenantContextPort {
   private readonly storage = new AsyncLocalStorage<TenantContext>();
 
   run<T>(context: TenantContext, fn: () => T): T {
@@ -18,7 +20,7 @@ export class TenantContextService {
 
   getContext(): TenantContext {
     const ctx = this.storage.getStore();
-    if (!ctx) {
+    if (isNil(ctx)) {
       throw new Error(
         'TenantContext not initialized. Ensure TenantContextMiddleware is applied before accessing tenant context.',
       );
@@ -42,7 +44,11 @@ export class TenantContextService {
     return this.getContext().actorId;
   }
 
+  tryGetTenantId(): string | undefined {
+    return this.storage.getStore()?.tenantId;
+  }
+
   isInitialized(): boolean {
-    return this.storage.getStore() !== undefined;
+    return !isUndefined(this.storage.getStore());
   }
 }

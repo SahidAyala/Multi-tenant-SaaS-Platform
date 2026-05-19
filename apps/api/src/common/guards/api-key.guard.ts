@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { isNil } from '@atlas/shared-kernel';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -23,7 +24,7 @@ export class ApiKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Record<string, unknown>>();
     const apiKey = this.extractApiKey(request);
 
-    if (!apiKey) return false;
+    if (isNil(apiKey)) return false;
 
     // Validation delegated — guard confirms format, identity module validates hash
     const isValidFormat = apiKey.startsWith('ak_') && apiKey.includes('.');

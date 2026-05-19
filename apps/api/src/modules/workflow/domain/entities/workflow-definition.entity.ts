@@ -1,5 +1,5 @@
-import { Entity, generateId } from '@atlas/shared-kernel';
-import { ValidationException } from '@atlas/shared-kernel';
+import { Entity, generateId, ValidationException } from '@atlas/shared-kernel';
+import { isEmpty } from '@atlas/shared-kernel';
 
 export type WorkflowTriggerType = 'manual' | 'event' | 'schedule' | 'webhook';
 export type WorkflowDefinitionStatus = 'draft' | 'active' | 'archived';
@@ -57,7 +57,7 @@ export class WorkflowDefinitionEntity extends Entity<string> {
   }
 
   static create(params: Omit<WorkflowDefinitionProps, 'definitionId' | 'version' | 'status'>): WorkflowDefinitionEntity {
-    if (params.steps.length === 0) {
+    if (isEmpty(params.steps)) {
       throw new ValidationException({ steps: ['Workflow must have at least one step'] });
     }
     return new WorkflowDefinitionEntity({

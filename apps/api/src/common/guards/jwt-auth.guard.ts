@@ -1,4 +1,5 @@
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { isNil } from '@atlas/shared-kernel';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -20,7 +21,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest<TUser = unknown>(err: Error, user: TUser): TUser {
-    if (err || !user) {
+    if (err || isNil(user)) {
       throw err ?? new UnauthorizedException('Invalid or expired token');
     }
     return user;

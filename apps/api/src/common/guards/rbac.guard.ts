@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { isNil, isEmpty } from '@atlas/shared-kernel';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { MembershipRole } from '@atlas/shared-kernel';
@@ -33,12 +34,12 @@ export class RbacGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!requiredRoles || requiredRoles.length === 0) return true;
+    if (isEmpty(requiredRoles)) return true;
 
     const request = context.switchToHttp().getRequest<{ user: JwtPayload }>();
     const user = request.user;
 
-    if (!user) {
+    if (isNil(user)) {
       throw new ForbiddenException('No authenticated user');
     }
 

@@ -1,4 +1,5 @@
 import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { isNil } from '@atlas/shared-kernel';
 import { ConfigService } from '@nestjs/config';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,7 +31,7 @@ export class TenantContextMiddleware implements NestMiddleware {
     // We set a provisional context here; guards will enrich it with actorId.
     const tenantIdFromHeader = req.headers?.['x-tenant-id'] as string | undefined;
 
-    if (!tenantIdFromHeader) {
+    if (isNil(tenantIdFromHeader)) {
       // Requests without a tenant header proceed — public routes are allowed,
       // protected routes will fail at the guard layer.
       next();
