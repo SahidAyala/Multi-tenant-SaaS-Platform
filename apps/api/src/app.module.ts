@@ -7,6 +7,7 @@ import {
   appConfig,
   dbConfig,
   eventBusConfig,
+  eventStreamingConfig,
   jwtConfig,
   redisConfig,
   tenantConfig,
@@ -16,6 +17,7 @@ import { TenantContextModule } from './common/tenant-context/tenant-context.modu
 import { TenantContextMiddleware } from './common/tenant-context/tenant-context.middleware';
 
 import { PlatformEventsModule } from './modules/platform-events/platform-events.module';
+import { OutboxModule } from './modules/outbox/outbox.module';
 import { TenantCoreModule } from './modules/tenant-core/tenant-core.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AuditModule } from './modules/audit/audit.module';
@@ -26,13 +28,14 @@ import { UserOrmEntity } from './modules/identity/infrastructure/persistence/use
 import { AuditEventOrmEntity } from './modules/audit/infrastructure/persistence/audit-event.orm-entity';
 import { WorkflowDefinitionOrmEntity } from './modules/workflow/infrastructure/persistence/workflow-definition.orm-entity';
 import { WorkflowExecutionOrmEntity } from './modules/workflow/infrastructure/persistence/workflow-execution.orm-entity';
+import { OutboxEntryOrmEntity } from './modules/outbox/infrastructure/persistence/outbox-entry.orm-entity';
 
 @Module({
   imports: [
     // -- Configuration --
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, dbConfig, redisConfig, jwtConfig, eventBusConfig, tenantConfig],
+      load: [appConfig, dbConfig, redisConfig, jwtConfig, eventBusConfig, tenantConfig, eventStreamingConfig],
       envFilePath: ['.env', '.env.local'],
     }),
 
@@ -63,6 +66,7 @@ import { WorkflowExecutionOrmEntity } from './modules/workflow/infrastructure/pe
           AuditEventOrmEntity,
           WorkflowDefinitionOrmEntity,
           WorkflowExecutionOrmEntity,
+          OutboxEntryOrmEntity,
         ],
         synchronize: false,
         logging: configService.get('db.logging'),
@@ -74,6 +78,7 @@ import { WorkflowExecutionOrmEntity } from './modules/workflow/infrastructure/pe
     // -- Cross-cutting modules (global) --
     TenantContextModule,
     PlatformEventsModule.forRoot(),
+    OutboxModule,
 
     // -- Domain modules --
     TenantCoreModule,

@@ -46,3 +46,10 @@ export const tenantConfig = registerAs('tenant', () => ({
   header: process.env.TENANT_HEADER ?? 'x-tenant-id',
   provisioningTimeoutMs: parseInt(process.env.TENANT_PROVISIONING_TIMEOUT_MS ?? '30000', 10),
 }));
+
+export const eventStreamingConfig = registerAs('eventStreaming', () => ({
+  enabled: process.env.EVENT_STREAMING_ENABLED === 'true',
+  baseUrl: process.env.EVENT_STREAMING_BASE_URL ?? '',
+  apiToken: process.env.EVENT_STREAMING_API_TOKEN ?? '',
+  timeoutMs: parseInt(process.env.EVENT_STREAMING_TIMEOUT_MS ?? '5000', 10),
+}));
