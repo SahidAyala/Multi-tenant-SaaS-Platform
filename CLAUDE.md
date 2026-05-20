@@ -145,3 +145,7 @@ See `docs/adr/` for the full ADR log:
 - ADR-003: Redis Streams event bus
 - ADR-004: AsyncLocalStorage tenant context propagation
 - ADR-005: Immutable audit log design
+- ADR-006: Tenant repository isolation
+- ADR-007: Event Streaming as canonical event backbone (cross-system integration)
+- ADR-008: Outbox pattern for durable event forwarding to backbone
+- ADR-009: Event-driven workflow triggers via Kafka
