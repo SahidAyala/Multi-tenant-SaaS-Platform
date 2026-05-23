@@ -5,17 +5,26 @@ export interface DomainEventMetadata {
   readonly correlationId: string;
   readonly actorId?: string;
   readonly causationId?: string;
+  readonly traceId?: string;
+  // sourceService defaults to 'atlas-saas-platform'; override in cross-service contexts.
+  readonly sourceService?: string;
+  readonly sourceVersion?: string;
 }
 
 export abstract class DomainEvent {
   readonly eventId: string;
   readonly eventType: string;
+  // eventVersion is the schema/contract version of this event type.
+  // Distinct from the stream sequence version assigned by Event Streaming.
+  readonly eventVersion: number = 1;
   readonly tenantId: string;
   readonly correlationId: string;
   readonly actorId?: string;
   readonly causationId?: string;
+  readonly traceId?: string;
+  readonly sourceService: string;
+  readonly sourceVersion?: string;
   readonly occurredAt: Date;
-  readonly version: number = 1;
 
   constructor(metadata: DomainEventMetadata) {
     this.eventId = uuidv4();
@@ -24,6 +33,9 @@ export abstract class DomainEvent {
     this.correlationId = metadata.correlationId;
     this.actorId = metadata.actorId;
     this.causationId = metadata.causationId;
+    this.traceId = metadata.traceId;
+    this.sourceService = metadata.sourceService ?? 'atlas-saas-platform';
+    this.sourceVersion = metadata.sourceVersion;
     this.occurredAt = new Date();
   }
 
@@ -33,12 +45,15 @@ export abstract class DomainEvent {
     return {
       eventId: this.eventId,
       eventType: this.eventType,
+      eventVersion: this.eventVersion,
       tenantId: this.tenantId,
       correlationId: this.correlationId,
       actorId: this.actorId,
       causationId: this.causationId,
+      traceId: this.traceId,
+      sourceService: this.sourceService,
+      sourceVersion: this.sourceVersion,
       occurredAt: this.occurredAt.toISOString(),
-      version: this.version,
       payload: this.payload,
     };
   }
