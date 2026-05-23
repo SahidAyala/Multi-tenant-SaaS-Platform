@@ -6,8 +6,14 @@ export interface OutboxEntryProps {
   outboxEntryId: string;
   eventId: string;
   eventType: string;
+  eventVersion: number;
   tenantId: string;
   correlationId: string;
+  actorId?: string;
+  causationId?: string;
+  traceId?: string;
+  sourceService: string;
+  sourceVersion?: string;
   payload: Record<string, unknown>;
   status: OutboxEntryStatus;
   attempts: number;
@@ -24,8 +30,14 @@ export interface OutboxEntryProps {
 export class OutboxEntryEntity extends EntityBase<string> {
   private _eventId: string;
   private _eventType: string;
+  private _eventVersion: number;
   private _tenantId: string;
   private _correlationId: string;
+  private _actorId?: string;
+  private _causationId?: string;
+  private _traceId?: string;
+  private _sourceService: string;
+  private _sourceVersion?: string;
   private _payload: Record<string, unknown>;
   private _status: OutboxEntryStatus;
   private _attempts: number;
@@ -38,8 +50,14 @@ export class OutboxEntryEntity extends EntityBase<string> {
     super({ id: props.outboxEntryId });
     this._eventId = props.eventId;
     this._eventType = props.eventType;
+    this._eventVersion = props.eventVersion;
     this._tenantId = props.tenantId;
     this._correlationId = props.correlationId;
+    this._actorId = props.actorId;
+    this._causationId = props.causationId;
+    this._traceId = props.traceId;
+    this._sourceService = props.sourceService;
+    this._sourceVersion = props.sourceVersion;
     this._payload = props.payload;
     this._status = props.status;
     this._attempts = props.attempts;
@@ -79,8 +97,14 @@ export class OutboxEntryEntity extends EntityBase<string> {
   get outboxEntryId(): string { return this._id; }
   get eventId(): string { return this._eventId; }
   get eventType(): string { return this._eventType; }
+  get eventVersion(): number { return this._eventVersion; }
   get tenantId(): string { return this._tenantId; }
   get correlationId(): string { return this._correlationId; }
+  get actorId(): string | undefined { return this._actorId; }
+  get causationId(): string | undefined { return this._causationId; }
+  get traceId(): string | undefined { return this._traceId; }
+  get sourceService(): string { return this._sourceService; }
+  get sourceVersion(): string | undefined { return this._sourceVersion; }
   get payload(): Record<string, unknown> { return this._payload; }
   get status(): OutboxEntryStatus { return this._status; }
   get attempts(): number { return this._attempts; }

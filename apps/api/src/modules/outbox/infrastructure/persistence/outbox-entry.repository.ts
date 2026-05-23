@@ -34,8 +34,14 @@ export class OutboxEntryRepository implements OutboxEntryRepositoryPort {
       outboxEntryId: orm.id,
       eventId: orm.eventId,
       eventType: orm.eventType,
+      eventVersion: orm.eventVersion,
       tenantId: orm.tenantId,
       correlationId: orm.correlationId,
+      actorId: orm.actorId,
+      causationId: orm.causationId,
+      traceId: orm.traceId,
+      sourceService: orm.sourceService,
+      sourceVersion: orm.sourceVersion,
       payload: orm.payload,
       status: orm.status,
       attempts: orm.attempts,
@@ -51,8 +57,14 @@ export class OutboxEntryRepository implements OutboxEntryRepositoryPort {
     orm.id = entity.outboxEntryId;
     orm.eventId = entity.eventId;
     orm.eventType = entity.eventType;
+    orm.eventVersion = entity.eventVersion;
     orm.tenantId = entity.tenantId;
     orm.correlationId = entity.correlationId;
+    orm.actorId = entity.actorId;
+    orm.causationId = entity.causationId;
+    orm.traceId = entity.traceId;
+    orm.sourceService = entity.sourceService;
+    orm.sourceVersion = entity.sourceVersion;
     orm.payload = entity.payload;
     orm.status = entity.status;
     orm.attempts = entity.attempts;

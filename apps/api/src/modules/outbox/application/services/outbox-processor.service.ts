@@ -54,14 +54,20 @@ export class OutboxProcessorService implements OnModuleInit, OnModuleDestroy {
         await this.eventStreamingClient.ingest({
           streamId: `platform.${entry.tenantId}.${entry.eventType}`,
           type: entry.eventType,
-          source: 'atlas-saas-platform',
+          source: entry.sourceService,
           payload: entry.payload,
+          // Canonical envelope fields — all must survive the outbox→Event Streaming hop
+          // so that consumers can reconstruct causation chains and audit trails.
+          correlationId: entry.correlationId,
+          actorId: entry.actorId,
+          causationId: entry.causationId,
+          traceId: entry.traceId,
+          sourceVersion: entry.sourceVersion,
+          eventVersion: entry.eventVersion,
           metadata: {
             event_id: entry.eventId,
             tenant_id: entry.tenantId,
-            correlation_id: entry.correlationId,
           },
-          correlationId: entry.correlationId,
         });
         entry.markProcessed();
         this.logger.debug(
