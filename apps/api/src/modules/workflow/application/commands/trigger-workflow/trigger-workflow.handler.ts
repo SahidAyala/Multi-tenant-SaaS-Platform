@@ -51,11 +51,12 @@ export class TriggerWorkflowHandler {
     const event: WorkflowTriggeredEvent = {
       eventId: saved.executionId,
       eventType: WORKFLOW_TRIGGERED,
+      eventVersion: 1,
       tenantId: saved.tenantId,
       correlationId: saved.correlationId,
       actorId: command.actorId,
+      sourceService: 'atlas-saas-platform',
       occurredAt: new Date().toISOString(),
-      version: 1,
       payload: {
         executionId: saved.executionId,
         definitionId: saved.definitionId,

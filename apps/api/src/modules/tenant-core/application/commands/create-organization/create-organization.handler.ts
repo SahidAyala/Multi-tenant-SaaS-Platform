@@ -40,11 +40,15 @@ export class CreateOrganizationHandler {
       const integrationEvent: TenantCreatedEvent = {
         eventId: domainEvent.eventId,
         eventType: TENANT_CREATED,
+        eventVersion: domainEvent.eventVersion,
         tenantId: domainEvent.tenantId,
         correlationId: domainEvent.correlationId,
         actorId: domainEvent.actorId,
+        causationId: domainEvent.causationId,
+        traceId: domainEvent.traceId,
+        sourceService: domainEvent.sourceService,
+        sourceVersion: domainEvent.sourceVersion,
         occurredAt: domainEvent.occurredAt.toISOString(),
-        version: domainEvent.version,
         payload: domainEvent.payload as TenantCreatedEvent['payload'],
       };
       await this.eventBus.publish(integrationEvent);

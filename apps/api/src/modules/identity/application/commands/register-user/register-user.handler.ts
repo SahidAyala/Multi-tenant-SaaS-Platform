@@ -40,10 +40,11 @@ export class RegisterUserHandler {
     const event: UserRegisteredEvent = {
       eventId: saved.userId,
       eventType: USER_REGISTERED,
+      eventVersion: 1,
       tenantId: 'global',
       correlationId: command.correlationId,
+      sourceService: 'atlas-saas-platform',
       occurredAt: new Date().toISOString(),
-      version: 1,
       payload: {
         userId: saved.userId,
         email: saved.email.value,
