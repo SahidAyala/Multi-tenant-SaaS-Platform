@@ -8,6 +8,13 @@ export interface IngestCommand {
   payload: Record<string, unknown>;
   metadata?: Record<string, string>;
   correlationId: string;
+  // Canonical envelope fields — forwarded as metadata so Event Streaming can
+  // index them for cross-service correlation and causation-chain reconstruction.
+  actorId?: string;
+  causationId?: string;
+  traceId?: string;
+  sourceVersion?: string;
+  eventVersion?: number;
 }
 
 /**
@@ -39,19 +46,36 @@ export class EventStreamingHttpClient {
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiToken}`,
+        'X-Correlation-ID': command.correlationId,
+      };
+      // Propagate causation chain so Event Streaming can reconstruct it.
+      if (command.causationId) headers['X-Causation-ID'] = command.causationId;
+      if (command.traceId) headers['X-Trace-ID'] = command.traceId;
+
+      // Merge caller-supplied metadata with canonical envelope fields so Event
+      // Streaming receives the full causation chain without requiring a schema change.
+      const metadata: Record<string, string> = {
+        ...(command.metadata ?? {}),
+        event_version: String(command.eventVersion ?? 1),
+        source_service: command.source,
+      };
+      if (command.actorId) metadata['actor_id'] = command.actorId;
+      if (command.causationId) metadata['causation_id'] = command.causationId;
+      if (command.traceId) metadata['trace_id'] = command.traceId;
+      if (command.sourceVersion) metadata['source_version'] = command.sourceVersion;
+
       const response = await fetch(`${this.baseUrl}/events`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiToken}`,
-          'X-Correlation-ID': command.correlationId,
-        },
+        headers,
         body: JSON.stringify({
           stream_id: command.streamId,
           type: command.type,
           source: command.source,
           payload: command.payload,
-          metadata: command.metadata ?? {},
+          metadata,
         }),
         signal: controller.signal,
       });

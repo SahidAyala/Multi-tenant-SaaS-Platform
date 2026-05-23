@@ -65,8 +65,14 @@ export class ForwardingEventBus extends IEventBus implements OnModuleInit, OnMod
       const entry = OutboxEntryEntity.create({
         eventId: event.eventId,
         eventType: event.eventType,
+        eventVersion: event.eventVersion,
         tenantId: event.tenantId,
         correlationId: event.correlationId,
+        actorId: event.actorId,
+        causationId: event.causationId,
+        traceId: event.traceId,
+        sourceService: event.sourceService,
+        sourceVersion: event.sourceVersion,
         payload: event.payload,
         occurredAt: new Date(event.occurredAt),
       });
