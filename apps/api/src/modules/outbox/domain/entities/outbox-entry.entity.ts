@@ -43,11 +43,10 @@ export class OutboxEntryEntity extends EntityBase<string> {
   private _attempts: number;
   private _lastError?: string;
   private readonly _occurredAt: Date;
-  private readonly _createdAt: Date;
   private _processedAt?: Date;
 
   private constructor(props: OutboxEntryProps) {
-    super({ id: props.outboxEntryId });
+    super({ id: props.outboxEntryId, createdAt: props.createdAt });
     this._eventId = props.eventId;
     this._eventType = props.eventType;
     this._eventVersion = props.eventVersion;
@@ -63,7 +62,6 @@ export class OutboxEntryEntity extends EntityBase<string> {
     this._attempts = props.attempts;
     this._lastError = props.lastError;
     this._occurredAt = props.occurredAt;
-    this._createdAt = props.createdAt;
     this._processedAt = props.processedAt;
   }
 

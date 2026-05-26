@@ -1,4 +1,4 @@
-export abstract class ValueObject<T extends Record<string, unknown>> {
+export abstract class ValueObject<T extends object> {
   protected readonly props: Readonly<T>;
 
   constructor(props: T) {

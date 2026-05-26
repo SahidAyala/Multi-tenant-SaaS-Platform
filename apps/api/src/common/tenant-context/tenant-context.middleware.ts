@@ -49,8 +49,8 @@ export class TenantContextMiddleware implements NestMiddleware {
       },
       () => {
         // Attach correlation ID to response headers for distributed tracing
-        (res as Record<string, unknown>).setHeader?.('x-correlation-id', correlationId);
-        (res as Record<string, unknown>).setHeader?.('x-request-id', requestId);
+        res.setHeader('x-correlation-id', correlationId);
+        res.setHeader('x-request-id', requestId);
         next();
       },
     );

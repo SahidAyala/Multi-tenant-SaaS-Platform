@@ -22,6 +22,7 @@ import { TenantCoreModule } from './modules/tenant-core/tenant-core.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 import { OrganizationOrmEntity } from './modules/tenant-core/infrastructure/persistence/organization.orm-entity';
 import { UserOrmEntity } from './modules/identity/infrastructure/persistence/user.orm-entity';
@@ -85,6 +86,7 @@ import { OutboxEntryOrmEntity } from './modules/outbox/infrastructure/persistenc
     IdentityModule,
     AuditModule,
     WorkflowModule,
+    DashboardModule,
   ],
 })
 export class AppModule implements NestModule {

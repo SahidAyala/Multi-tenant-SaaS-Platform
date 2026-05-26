@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import { Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -11,10 +11,10 @@ import { v4 as uuidv4 } from 'uuid';
 export class CorrelationIdInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const http = context.switchToHttp();
-    const request = http.getRequest<Record<string, Record<string, string>>>();
+    const request = http.getRequest<FastifyRequest & Record<string, unknown>>();
     const response = http.getResponse<FastifyReply>();
 
-    const correlationId = request.headers?.['x-correlation-id'] ?? uuidv4();
+    const correlationId = (request.headers['x-correlation-id'] as string) ?? uuidv4();
     const requestId = uuidv4();
 
     request['correlationId'] = correlationId;

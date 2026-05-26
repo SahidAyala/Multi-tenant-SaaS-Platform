@@ -1,4 +1,4 @@
-.PHONY: help install dev stop logs clean test migrate seed
+.PHONY: help install dev stop logs clean test migrate seed bootstrap
 
 DOCKER_COMPOSE = docker compose
 PNPM = pnpm
@@ -49,6 +49,9 @@ migrate-revert: ## Revert last migration
 
 db-shell: ## Open psql shell
 	$(DOCKER_COMPOSE) exec postgres psql -U atlas -d atlas_dev
+
+bootstrap: ## Seed the initial platform admin + tenant (idempotent, local-dev only)
+	$(PNPM) run bootstrap:admin
 
 # ----------------------------------------------------------
 # Build & Test

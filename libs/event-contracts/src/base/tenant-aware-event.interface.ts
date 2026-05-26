@@ -61,5 +61,5 @@ export interface TenantAwareEvent {
   readonly replaySourceEventId?: string;
 }
 
-export type EventEnvelope<T extends Record<string, unknown> = Record<string, unknown>> =
+export type EventEnvelope<T extends object = Record<string, unknown>> =
   TenantAwareEvent & { readonly payload: T };

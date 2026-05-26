@@ -40,7 +40,8 @@ export class RecordAuditEventHandler {
       correlationId: saved.correlationId,
       actorId: saved.actorId,
       occurredAt: saved.occurredAt.toISOString(),
-      version: 1,
+      eventVersion: 1,
+      sourceService: 'atlas-saas-platform',
       payload: {
         auditEventId: saved.auditEventId,
         action: saved.action,

@@ -13,7 +13,9 @@ export class OutboxEntryRepository implements OutboxEntryRepositoryPort {
   ) {}
 
   async append(entry: OutboxEntryEntity): Promise<void> {
-    await this.repo.insert(this.toOrm(entry));
+    // TypeORM's insert() DeepPartial typing rejects Record<string, unknown> on jsonb columns.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.repo.insert(this.toOrm(entry) as any);
   }
 
   async findPending(limit: number): Promise<OutboxEntryEntity[]> {

@@ -31,6 +31,7 @@ export class RedisStreamsEventBus extends IEventBus implements OnModuleInit, OnM
   private consumeInterval?: NodeJS.Timeout;
 
   constructor(private readonly configService: ConfigService) {
+    super();
     const redisConfig = {
       host: this.configService.get('redis.host', 'localhost'),
       port: this.configService.get('redis.port', 6379),
@@ -57,7 +58,8 @@ export class RedisStreamsEventBus extends IEventBus implements OnModuleInit, OnM
       'correlationId', event.correlationId,
       'actorId', event.actorId ?? '',
       'occurredAt', event.occurredAt,
-      'version', String(event.version),
+      'eventVersion', String(event.eventVersion),
+      'sourceService', event.sourceService,
       'payload', JSON.stringify(event.payload),
     ];
 
@@ -144,7 +146,8 @@ export class RedisStreamsEventBus extends IEventBus implements OnModuleInit, OnM
       correlationId: obj['correlationId'],
       actorId: obj['actorId'] || undefined,
       occurredAt: obj['occurredAt'],
-      version: parseInt(obj['version'] ?? '1', 10),
+      eventVersion: parseInt(obj['eventVersion'] ?? '1', 10),
+      sourceService: obj['sourceService'] ?? '',
       payload: JSON.parse(obj['payload'] ?? '{}') as Record<string, unknown>,
     };
   }

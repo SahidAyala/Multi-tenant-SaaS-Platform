@@ -30,7 +30,8 @@ export class AuditEventRepository
     // Double-check: the entity's own tenantId must match the ALS context.
     // Catches bugs where an entity was constructed with the wrong tenantId.
     this.guardTenantOwnership(event.tenantId);
-    await this.repo.insert(this.toOrm(event));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.repo.insert(this.toOrm(event) as any);
     return event;
   }
 
@@ -44,7 +45,8 @@ export class AuditEventRepository
         );
       }
     }
-    await this.repo.insert(events.map((e) => this.toOrm(e)));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.repo.insert(events.map((e) => this.toOrm(e)) as any);
   }
 
   async findById(id: string): Promise<AuditEventEntity | null> {

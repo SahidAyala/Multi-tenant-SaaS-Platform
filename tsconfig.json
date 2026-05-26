@@ -22,9 +22,9 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
-      "@atlas/shared-kernel": ["libs/shared-kernel/src/index.ts"],
+      "@atlas/shared-kernel": ["libs/shared-kernel/src"],
       "@atlas/shared-kernel/*": ["libs/shared-kernel/src/*"],
-      "@atlas/event-contracts": ["libs/event-contracts/src/index.ts"],
+      "@atlas/event-contracts": ["libs/event-contracts/src"],
       "@atlas/event-contracts/*": ["libs/event-contracts/src/*"]
     }
   }
