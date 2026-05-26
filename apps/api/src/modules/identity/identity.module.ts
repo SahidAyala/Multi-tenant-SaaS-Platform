@@ -10,11 +10,15 @@ import { JwtStrategy } from './infrastructure/jwt/jwt.strategy';
 import { RegisterUserHandler } from './application/commands/register-user/register-user.handler';
 import { AuthenticateHandler } from './application/commands/authenticate/authenticate.handler';
 import { IdentityController } from './api/identity.controller';
+import { TenantCoreModule } from '../tenant-core/tenant-core.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserOrmEntity]),
     PassportModule,
+    // AuthenticateHandler resolves the user's tenant via OrganizationRepositoryPort
+    // at login time — TenantCoreModule exports the port.
+    TenantCoreModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

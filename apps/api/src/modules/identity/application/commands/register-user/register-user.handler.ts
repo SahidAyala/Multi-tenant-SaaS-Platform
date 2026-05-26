@@ -3,7 +3,7 @@ import { ConflictException, Result } from '@atlas/shared-kernel';
 import { USER_REGISTERED, UserRegisteredEvent } from '@atlas/event-contracts';
 import { RegisterUserCommand } from './register-user.command';
 import { UserRepositoryPort } from '../../../domain/repositories/user.repository.port';
-import { UserAggregate } from '../../aggregates/user.aggregate';
+import { UserAggregate } from '../../../domain/aggregates/user.aggregate';
 import { IEventBus } from '../../../../platform-events/ports/event-bus.port';
 
 export interface RegisterUserResult {
