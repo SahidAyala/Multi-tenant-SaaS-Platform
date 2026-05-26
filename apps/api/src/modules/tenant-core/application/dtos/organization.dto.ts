@@ -1,15 +1,15 @@
 import { OrganizationAggregate } from '../../domain/aggregates/organization.aggregate';
 
 export class OrganizationDto {
-  readonly organizationId: string;
-  readonly name: string;
-  readonly slug: string;
-  readonly plan: string;
-  readonly status: string;
-  readonly ownerId: string;
+  readonly organizationId!: string;
+  readonly name!: string;
+  readonly slug!: string;
+  readonly plan!: string;
+  readonly status!: string;
+  readonly ownerId!: string;
   readonly provisionedAt?: string;
-  readonly createdAt: string;
-  readonly updatedAt: string;
+  readonly createdAt!: string;
+  readonly updatedAt!: string;
 
   static fromAggregate(org: OrganizationAggregate): OrganizationDto {
     return {

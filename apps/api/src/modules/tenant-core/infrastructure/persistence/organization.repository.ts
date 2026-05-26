@@ -60,6 +60,16 @@ export class OrganizationRepository
     return count > 0;
   }
 
+  async findByOwnerId(
+    ownerId: string,
+    ctx: SystemQueryContext,
+  ): Promise<OrganizationAggregate | null> {
+    const orm = await this.systemQb('o', ctx)
+      .where('o.owner_id = :ownerId', { ownerId })
+      .getOne();
+    return orm ? this.mapper.toDomain(orm) : null;
+  }
+
   async provision(
     organization: OrganizationAggregate,
     ctx: SystemQueryContext,

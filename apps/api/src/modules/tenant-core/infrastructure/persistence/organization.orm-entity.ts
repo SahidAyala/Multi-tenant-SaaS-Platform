@@ -21,6 +21,7 @@ export class OrganizationOrmEntity {
   slug!: string;
 
   @Column({
+    name: 'plan_tier',
     type: 'enum',
     enum: TenantPlanTier,
     default: TenantPlanTier.FREE,
@@ -34,18 +35,18 @@ export class OrganizationOrmEntity {
   })
   status!: TenantStatus;
 
-  @Column('uuid')
+  @Column({ name: 'owner_id', type: 'uuid' })
   ownerId!: string;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'provisioned_at', type: 'timestamptz', nullable: true })
   provisionedAt?: Date;
 
   @Column({ type: 'jsonb', default: '{}' })
   settings!: Record<string, unknown>;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 }

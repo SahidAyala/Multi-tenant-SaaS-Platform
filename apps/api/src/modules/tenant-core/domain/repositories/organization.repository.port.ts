@@ -23,4 +23,17 @@ export abstract class OrganizationRepositoryPort {
   abstract findBySlug(slug: string, ctx: SystemQueryContext): Promise<OrganizationAggregate | null>;
   abstract existsBySlug(slug: string, ctx: SystemQueryContext): Promise<boolean>;
   abstract provision(organization: OrganizationAggregate, ctx: SystemQueryContext): Promise<OrganizationAggregate>;
+
+  /**
+   * Resolve the organization a user owns. Used at authentication time, before
+   * any tenant context has been established — the lookup must run as a system
+   * operation since the caller is identifying *which* tenant the JWT will
+   * scope subsequent requests to.
+   *
+   * Until a persisted memberships table exists, ownership is the only link
+   * between a user and a tenant (see ADR-007 / bootstrap-platform-admin.ts).
+   * When memberships land, this method's role-resolution semantics will move
+   * into a dedicated MembershipRepositoryPort and this method will be removed.
+   */
+  abstract findByOwnerId(ownerId: string, ctx: SystemQueryContext): Promise<OrganizationAggregate | null>;
 }

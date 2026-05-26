@@ -15,7 +15,7 @@ export class OrganizationMapper {
       status: orm.status,
       ownerId: orm.ownerId,
       provisionedAt: orm.provisionedAt,
-      settings: orm.settings as OrganizationSettings,
+      settings: orm.settings as unknown as OrganizationSettings,
       createdAt: orm.createdAt,
       updatedAt: orm.updatedAt,
     });

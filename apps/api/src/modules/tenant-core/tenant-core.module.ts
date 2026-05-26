@@ -5,6 +5,8 @@ import { OrganizationRepository } from './infrastructure/persistence/organizatio
 import { OrganizationMapper } from './infrastructure/persistence/organization.mapper';
 import { OrganizationRepositoryPort } from './domain/repositories/organization.repository.port';
 import { CreateOrganizationHandler } from './application/commands/create-organization/create-organization.handler';
+import { UpdateOrganizationHandler } from './application/commands/update-organization/update-organization.handler';
+import { SuspendOrganizationHandler } from './application/commands/suspend-organization/suspend-organization.handler';
 import { TenantCoreController } from './api/tenant-core.controller';
 
 @Module({
@@ -14,6 +16,8 @@ import { TenantCoreController } from './api/tenant-core.controller';
     OrganizationMapper,
     { provide: OrganizationRepositoryPort, useClass: OrganizationRepository },
     CreateOrganizationHandler,
+    UpdateOrganizationHandler,
+    SuspendOrganizationHandler,
   ],
   exports: [OrganizationRepositoryPort],
 })

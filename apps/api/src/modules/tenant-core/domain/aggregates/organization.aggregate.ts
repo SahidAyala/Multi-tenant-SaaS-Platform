@@ -3,6 +3,7 @@ import { TenantSlug } from '../value-objects/tenant-slug.vo';
 import { TenantPlan } from '../value-objects/tenant-plan.vo';
 import { TenantCreatedDomainEvent } from '../events/tenant-created.domain-event';
 import { TenantProvisionedDomainEvent } from '../events/tenant-provisioned.domain-event';
+import { TenantSuspendedDomainEvent } from '../events/tenant-suspended.domain-event';
 import { ConflictException } from '@atlas/shared-kernel';
 
 export interface OrganizationProps {
@@ -115,11 +116,40 @@ export class OrganizationAggregate extends AggregateRoot<string> {
     );
   }
 
-  suspend(reason: string, suspendedBy: string): void {
+  suspend(params: { reason: string; suspendedBy: string; correlationId: string }): void {
     if (this._status !== TenantStatus.ACTIVE) {
       throw new ConflictException(`Cannot suspend organization in status: ${this._status}`);
     }
     this._status = TenantStatus.SUSPENDED;
+    const suspendedAt = new Date();
+    this.touch();
+
+    this.addDomainEvent(
+      new TenantSuspendedDomainEvent({
+        tenantId: this._id,
+        correlationId: params.correlationId,
+        actorId: params.suspendedBy,
+        organizationId: this._id,
+        reason: params.reason,
+        suspendedBy: params.suspendedBy,
+        suspendedAt: suspendedAt.toISOString(),
+      }),
+    );
+  }
+
+  rename(newName: string): void {
+    const trimmed = newName.trim();
+    if (trimmed.length < 2 || trimmed.length > 100) {
+      throw new ConflictException('Organization name must be between 2 and 100 characters');
+    }
+    if (trimmed === this._name) return;
+    this._name = trimmed;
+    this.touch();
+  }
+
+  changePlan(planTier: TenantPlanTier): void {
+    if (this._plan.tier === planTier) return;
+    this._plan = TenantPlan.forTier(planTier);
     this.touch();
   }
 
