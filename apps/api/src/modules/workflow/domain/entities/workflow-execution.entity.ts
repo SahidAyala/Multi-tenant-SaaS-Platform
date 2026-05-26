@@ -103,12 +103,27 @@ export class WorkflowExecutionEntity extends Entity<string> {
     this.touch();
   }
 
+  cancel(reason?: string): void {
+    if (this._status === 'completed' || this._status === 'failed' || this._status === 'cancelled') {
+      throw new ConflictException(`Cannot cancel execution in terminal status: ${this._status}`);
+    }
+    this._status = 'cancelled';
+    this._completedAt = new Date();
+    if (this._startedAt) {
+      this._durationMs = this._completedAt.getTime() - this._startedAt.getTime();
+    }
+    if (reason) {
+      this._errorMessage = reason;
+    }
+    this.touch();
+  }
+
   get executionId(): string { return this._id; }
   get definitionId(): string { return this._definitionId; }
   get tenantId(): string { return this._tenantId; }
   get correlationId(): string { return this._correlationId; }
   get triggeredBy(): string { return this._triggeredBy; }
-  get triggerType(): string { return this._triggerType; }
+  get triggerType(): 'manual' | 'event' | 'schedule' { return this._triggerType; }
   get input(): Readonly<Record<string, unknown>> { return this._input; }
   get status(): WorkflowExecutionStatus { return this._status; }
   get stepResults(): ReadonlyArray<WorkflowStepResult> { return [...this._stepResults]; }
